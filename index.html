@@ -5,12 +5,17 @@ $(document).ready (function(){
 	var x = 150;
 	var y = 150;
 	var ctx;
-	
-	var blocks = [],
+
+	var canvasMinX;
+	var canvasMaxX;
+	var canvasMinY;
+	var canvasMaxY;
+		
+	var bubbles = [],
 		colors = ['#EFD279', '#95CBE9', '#024769', '#AFD775', '#2C5700', '#DE9D7F'],
 		width = 50,
 		height = 50,
-		// block size
+		// bubble size
 		bS = {width: 20, height: 20};
 
 	function $R(min, max) {
@@ -23,13 +28,13 @@ $(document).ready (function(){
 
 	function init() {
 	  ctx = $('#canvas')[0].getContext("2d");
-		blocks = [];
+		bubbles = [];
 	  jQuery.each( $R(0, height), function () {
 			var row = [];
 			jQuery.each($R(0, width), function () {
 				row.push (Math.floor(Math.random()*colors.length));
 			});
-			blocks.push(row);
+			bubbles.push(row);
 	  });
 	  draw();
 	}
@@ -38,21 +43,18 @@ $(document).ready (function(){
 	 * init bubbles
 	 */
 	function draw() {
-	  jQuery.each(blocks, function(y, v) {
-			jQuery.each(blocks[y], function(x, v2) {
-				var color = blocks[y][x];
-				drawBlock ({x:x, y:y}, color);
+		ctx.clearRect(0,0,width*bS.width,height*bS.height);
+	  jQuery.each(bubbles, function(y, v) {
+			jQuery.each(bubbles[y], function(x, v2) {
+				var color = bubbles[y][x];
+				drawBubble ({x:x, y:y}, color);
 			});
 	  });
 	
 	}
 
-	var canvasMinX;
-	var canvasMaxX;
-	var canvasMinY;
-	var canvasMaxY;
 
-	function drawBlock(pos, index) {
+	function drawBubble(pos, index) {
 		color = index >= 0 ? colors[index]: '#FFF';
 		ctx.fillStyle = color;
 		ctx.beginPath();
@@ -60,6 +62,12 @@ $(document).ready (function(){
 	  ctx.arc(radius + pos.x * bS.width, radius + pos.y * bS.height, radius-1, 0, Math.PI*2, true);
 	  ctx.closePath();
 	  ctx.fill();
+	}
+	
+	function clearBubble(pos) {
+		setBubble(pos, -1);
+		var coords = bubbleToPixelCoords (pos);
+		ctx.clearRect(coords.x, coords.y, bS.width, bS.height);
 	}
 
 
@@ -80,30 +88,98 @@ $(document).ready (function(){
 	
 	$('#canvas').click(function(evt){
 		var view = adjustViewportCoordinates(evt.pageX, evt.pageY),
-			blockPos = pixelToBlockCoord(view.x,view.y),
-			block = blockPos ? getBlock(blockPos) : null;
-		
-		if(blockPos) { 
-			setBlock(blockPos, -1);
-			drawBlock(blockPos, -1);
+			bubblePos = pixelToBubbleCoord(view.x,view.y);
+				
+		if(bubblePos) { 
+			var selectedBubbles = floodBubble(bubblePos);
+			
+			if(selectedBubbles.length > 1 ) {
+				addScore ((selectedBubbles.length - 1)*selectedBubbles.length);
+				//jQuery.each (selectedBubbles, function(i,v){clearBubble(v);})
+				//jQuery.each (selectedBubbles, function(i,v){setBubble(v, -1);})
+				jQuery.each (selectedBubbles, function(i,v){clearBubble(v); dropBubbles(v);})
+				draw();
+			}
 		}
+		
+
 	});
 	
-	function pixelToBlockCoord(x,y) {
+	function addScore(value) {
+		var s = parseFloat($('#score').val());
+		s += value;
+		$('#score').val(s);
+	}
+	
+	function dropBubbles(bubPos) {
+		if(isBubblePos(bubPos)){
+			// drop all blocks north of this block if there are empty spots
+			var color = getBubble(bubPos);
+			if(color == -1) {
+				// empty position, so set current block to block above
+				var top = {x: bubPos.x, y: bubPos.y-1};
+				if(isBubblePos(top)) {
+					var topColor = getBubble(top);
+					setBubble(bubPos, topColor);
+					setBubble(top, -1); 
+					dropBubbles(top);
+				
+				}
+			}
+		}
+	}
+	
+	function pixelToBubbleCoord(x,y) {
 		return {x: Math.floor(x/bS.width), y: Math.floor(y/bS.height)}
 	}
-	
-	function getBlockUsingPixel(x, y) {
-		var pos = pixelToBlockCoord(x,y);
-		return pos.x < width && pos.y < height ? blocks[pos.y][pos.x] : null;
+	function bubbleToPixelCoords(coords){
+		return {x: coords.x*bS.width, y: coords.y*bS.height};
 	}
 	
-	function getBlock(pos) {
-		return blocks[pos.y][pos.x];
+	function getBubbleUsingPixel(x, y) {
+		var pos = pixelToBubbleCoord(x,y);
+		return pos.x < width && pos.y < height ? bubbles[pos.y][pos.x] : null;
 	}
 	
-	function setBlock(pos, index) {
-		blocks[pos.y][pos.x] = index;
+	function isBubblePos(pos) {
+		return 0 <= pos.x && 0 <= pos.y && pos.x < width && pos.y < height;
+	}
+	
+	function getBubble(pos) {
+		return bubbles[pos.y][pos.x];
+	}
+	
+	function setBubble(pos, index) {
+		bubbles[pos.y][pos.x] = index;
+	}
+	
+	/**
+	 * Determine all adjacent blockPos that share
+	 * a color with the given blockPos.
+	 **/
+	function floodBubble(blockPos, targetColor, result) {
+		if (!isBubblePos(blockPos)) return result;
+		
+		result = result || {values:[]};
+		var color = getBubble(blockPos);
+		var key = blockPos.x +','+blockPos.y;
+		targetColor = targetColor == null ? color : targetColor; 
+		if (color >= 0) {
+			if (targetColor == color && ! result[key] ) {
+				result.values.push(blockPos);
+				result[key] = true;
+				// check neighbors
+				// north
+				floodBubble({x: blockPos.x, y: blockPos.y-1}, targetColor, result);
+				// south
+				floodBubble({x: blockPos.x, y: blockPos.y+1}, targetColor, result);
+				// east
+				floodBubble({x: blockPos.x + 1, y: blockPos.y}, targetColor, result);
+				// west
+				floodBubble({x: blockPos.x - 1, y: blockPos.y}, targetColor, result);								
+			} 
+		}
+		return result.values;
 	}
 	
 
@@ -112,6 +188,7 @@ $(document).ready (function(){
 });
 </script>
 <body>
+<label for="score">Score</label><input id="score" value="0" /><br />
 <canvas id="canvas" width="300" height="300"></canvas>
 </body>
 </html>
