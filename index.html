@@ -1,0 +1,127 @@
+<html>
+<script src="jquery-1.4.2.min.js"></script>
+<script>
+$(document).ready (function(){
+	var x = 150;
+	var y = 150;
+	var dx = 2;
+	var dy = 4;
+	var ctx;
+	
+	var blocks = [],
+		colors = ['#EFD279', '#95CBE9', '#024769', '#AFD775', '#2C5700', '#DE9D7F'],
+		width = 50,
+		height = 50,
+		// block size
+		bS = {width: 20, height: 20};
+
+	function $R(min, max) {
+		var a = [];
+		for (var i = min; i < max; i ++) {
+			a.push(i);
+		}
+		return a;
+	}
+
+	function init() {
+	  ctx = $('#canvas')[0].getContext("2d");
+		blocks = [];
+	  jQuery.each( $R(0, height), function () {
+			var row = [];
+			jQuery.each($R(0, width), function () {
+				row.push (Math.floor(Math.random()*colors.length));
+			});
+			blocks.push(row);
+	  });
+	  return setInterval(draw, 300);
+	}
+
+	function draw() {
+	  ctx.clearRect(0,0,300,300);
+	  jQuery.each(blocks, function(y, v) {
+			jQuery.each(blocks[y], function(x, v2) {
+				var color = blocks[y][x];
+				
+				// if (color >= 0) {
+				// 	ctx.fillStyle = colors[color];
+				// 	ctx.beginPath();
+				// 	radius = bS.height/2;
+				//   ctx.arc(radius + x * bS.width, radius + y * bS.height, radius-1, 0, Math.PI*2, true);
+				//   ctx.closePath();
+				//   ctx.fill();
+				// }
+				drawBlock ({x:x, y:y}, color);
+			});
+	  });
+	
+	}
+
+	var canvasMinX;
+	var canvasMaxX;
+	var canvasMinY;
+	var canvasMaxY;
+
+	function drawBlock(pos, index) {
+		color = index >= 0 ? colors[index]: '#FFF';
+		ctx.fillStyle = color;
+		ctx.beginPath();
+		radius = bS.height/2;
+	  ctx.arc(radius + pos.x * bS.width, radius + pos.y * bS.height, radius-1, 0, Math.PI*2, true);
+	  ctx.closePath();
+	  ctx.fill();
+	}
+
+
+	function init_mouse() {
+	  canvasMinX = $("#canvas").offset().left;
+	  canvasMaxX = canvasMinX + width*bS.width;
+	  canvasMinY = $("#canvas").offset().top
+	  canvasMaxY = canvasMinY + height*bS.height;	
+	}
+	
+	function inCanvas(x,y) {
+		return canvasMaxX > x && canvasMinX < x && y < canvasMaxY && y >= canvasMinY;
+	}
+	
+	function adjustViewportCoordinates(x,y) {
+		return {x: x-canvasMinX, y: y-canvasMinY};
+	}
+	
+	$('#canvas').click(function(evt){
+		var view = adjustViewportCoordinates(evt.pageX, evt.pageY),
+			//block = inCanvas (evt.pageX, evt.pageY) ? getBlockUsingPixel (view.x, view.y) : null;
+			blockPos = pixelToBlockCoord(view.x,view.y),
+			block = blockPos ? getBlock(blockPos) : null;
+		
+		if(blockPos) setBlock(blockPos, -1);
+		
+		
+		//alert('view: ' + view + ' block:' + block);
+	});
+	
+	function pixelToBlockCoord(x,y) {
+		return {x: Math.floor(x/bS.width), y: Math.floor(y/bS.height)}
+	}
+	
+	function getBlockUsingPixel(x, y) {
+		var pos = pixelToBlockCoord(x,y);
+		return pos.x < width && pos.y < height ? blocks[pos.y][pos.x] : null;
+	}
+	
+	function getBlock(pos) {
+		return blocks[pos.y][pos.x];
+	}
+	
+	function setBlock(pos, index) {
+		blocks[pos.y][pos.x] = index;
+	}
+	
+
+	init();
+	init_mouse();
+});
+</script>
+<body>
+<canvas id="canvas" width="300" height="300"></canvas>
+</body>
+</html>
