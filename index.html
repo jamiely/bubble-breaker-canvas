@@ -2,9 +2,19 @@
 <script src="jquery-1.4.2.min.js"></script>
 <script>
 $(document).ready (function(){
+	var game = {
+		debug: true
+	};
 	var x = 150;
 	var y = 150;
 	var ctx;
+	
+	var DIR = {
+		NORTH: 'north',
+		SOUTH: 'south',
+		EAST: 'east',
+		WEST: 'west'
+	}
 
 	var canvasMinX;
 	var canvasMaxX;
@@ -13,8 +23,8 @@ $(document).ready (function(){
 		
 	var bubbles = [],
 		colors = ['#EFD279', '#95CBE9', '#024769', '#AFD775', '#2C5700', '#DE9D7F'],
-		width = 50,
-		height = 50,
+		width = 10,
+		height = 10,
 		// bubble size
 		bS = {width: 20, height: 20};
 
@@ -27,6 +37,7 @@ $(document).ready (function(){
 	}
 
 	function init() {
+		$('#score').val(0);
 	  ctx = $('#canvas')[0].getContext("2d");
 		bubbles = [];
 	  jQuery.each( $R(0, height), function () {
@@ -38,17 +49,42 @@ $(document).ready (function(){
 	  });
 	  draw();
 	}
+	
+	/**
+	 * Sort blocks by northmost first
+	 */
+	function sortBubblePositions(bubbles) {
+		return bubbles.sort(function (a, b) {
+			if ( a.y == b.y ) {
+				return 0;
+			}
+			return a.y < b.y ? -1 : 1;
+		});
+	}
 
 	/**
 	 * init bubbles
 	 */
 	function draw() {
+		radius = bS.height/2;		
 		ctx.clearRect(0,0,width*bS.width,height*bS.height);
 	  jQuery.each(bubbles, function(y, v) {
+			// draws y labels
+			if (game.debug){
+				ctx.fillStyle = '#000';
+				ctx.fillText(y, width * bS.width, y * bS.height + 1.5 *radius);
+			}
 			jQuery.each(bubbles[y], function(x, v2) {
 				var color = bubbles[y][x];
 				drawBubble ({x:x, y:y}, color);
+				// draws x labels
+				if (game.debug){
+					ctx.fillStyle = '#000';
+					ctx.fillText(x, x * bS.width + radius/2, height * bS.height + radius);
+				}
 			});
+			
+			
 	  });
 	
 	}
@@ -67,7 +103,7 @@ $(document).ready (function(){
 	function clearBubble(pos) {
 		setBubble(pos, -1);
 		var coords = bubbleToPixelCoords (pos);
-		ctx.clearRect(coords.x, coords.y, bS.width, bS.height);
+				ctx.clearRect(coords.x, coords.y, bS.width, bS.height);
 	}
 
 
@@ -92,12 +128,16 @@ $(document).ready (function(){
 				
 		if(bubblePos) { 
 			var selectedBubbles = floodBubble(bubblePos);
-			
+			selectedBubbles = sortBubblePositions ( selectedBubbles );
 			if(selectedBubbles.length > 1 ) {
 				addScore ((selectedBubbles.length - 1)*selectedBubbles.length);
-				//jQuery.each (selectedBubbles, function(i,v){clearBubble(v);})
+				jQuery.each (selectedBubbles, function(i,v){clearBubble(v);})
 				//jQuery.each (selectedBubbles, function(i,v){setBubble(v, -1);})
-				jQuery.each (selectedBubbles, function(i,v){clearBubble(v); dropBubbles(v);})
+				jQuery.each (selectedBubbles, function(i,v){
+				//	clearBubble(v); 
+					dropBubbles(v);
+					//draw();
+				});
 				draw();
 			}
 		}
@@ -118,8 +158,11 @@ $(document).ready (function(){
 			if(color == -1) {
 				// empty position, so set current block to block above
 				var top = {x: bubPos.x, y: bubPos.y-1};
+				var bottom = {x: bubPos.x, y: bubPos.y+1};
 				if(isBubblePos(top)) {
+					
 					var topColor = getBubble(top);
+						
 					setBubble(bubPos, topColor);
 					setBubble(top, -1); 
 					dropBubbles(top);
@@ -128,6 +171,63 @@ $(document).ready (function(){
 			}
 		}
 	}
+	// 
+	// function dropColumn(index){
+	// 	jQuery.each( $R(0, height), function (row) {
+	// 		row = height-row; // start at bottom
+	// 		
+	// 	});
+	// }
+	
+	function $P (x, y) {
+		var p = {x:x, y:y};
+		return isBubblePos(p) ? p : null;
+	}
+	
+	function getBubblePosDir(pos,dir) {
+		var rtn = {x:pos.x, y:pos.y};
+		switch(dir) {
+			case 'north':
+				pos.y --;
+				break;
+			case 'east':
+				pos.x ++;
+				break;
+			case 'west':
+				pos.x --;
+				break;
+			case 'south':
+				pos.y ++;
+				break;
+		}
+		return isBubblePos(pos) ? pos : null;
+	}
+		// 
+		// 
+		// function findEmptyColumnSpan(col, start, stop) {
+		// 	var posStart = $P(col, start),
+		// 		posEnd = $P(col, stop),
+		// 		posAboveStart = getBubblePosDir(posStart, DIR.NORTH);
+		// 		
+		// 	if (posStart && stop && posAboveStart) {
+		// 		var colorStart = getBubble(posStart),
+		// 			colorStop = getBubble(posStop),
+		// 			colorAboveStart = getBubble(posAboveStart)
+		// 		
+		// 		if (colorStart == -1) {
+		// 			// move south
+		// 			return findEmptyColumnSpan(col, start+1, stop);
+		// 		}
+		// 		else if (colorAboveStart != -1) {
+		// 			// move north
+		// 			return findEmptyColumnSpan(col, start-1, stop);
+		// 		}
+		// 		
+		// 		if (colorStop != -1) 
+		// 	}
+		// 	return null;
+		// }
+	
 	
 	function pixelToBubbleCoord(x,y) {
 		return {x: Math.floor(x/bS.width), y: Math.floor(y/bS.height)}
@@ -189,6 +289,6 @@ $(document).ready (function(){
 </script>
 <body>
 <label for="score">Score</label><input id="score" value="0" /><br />
-<canvas id="canvas" width="300" height="300"></canvas>
+<canvas id="canvas" width="600" height="600"></canvas>
 </body>
 </html>
