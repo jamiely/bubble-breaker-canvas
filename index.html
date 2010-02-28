@@ -1,5 +1,6 @@
 <html>
-<script src="jquery-1.4.2.min.js"></script>
+<head>
+	<script src="jquery-1.4.2.min.js"></script>
 <script>
 $(document).ready (function(){
 	var game = {
@@ -37,6 +38,17 @@ $(document).ready (function(){
 	}
 
 	function init() {
+		$('#canvas').attr ({
+			width: width * bS.width,
+			height: height * bS.height
+		});
+				
+		height = parseInt ($('#height').val());
+		width = parseInt ($('#width').val());
+		
+
+		
+		
 		$('#score').val(0);
 	  ctx = $('#canvas')[0].getContext("2d");
 		bubbles = [];
@@ -48,6 +60,10 @@ $(document).ready (function(){
 			bubbles.push(row);
 	  });
 	  draw();
+	
+		$('#btnRefresh').click(function(){
+			init ();
+		});
 	}
 	
 	/**
@@ -251,8 +267,15 @@ $(document).ready (function(){
 	init_mouse();
 });
 </script>
+<style>
+	input { width: 50px;}
+</style>
+</head>
 <body>
 <label for="score">Score</label><input id="score" value="0" /><br />
-<canvas id="canvas" width="600" height="600"></canvas>
+<canvas id="canvas" width="300" height="300" style="border: 1px #eee solid"></canvas><br />
+<label for="height">Height</label><input id="height" value="10" />
+<label for="width">Width</label><input id="width" value="10" />
+<button id="btnRefresh">Restart</button>
 </body>
 </html>
