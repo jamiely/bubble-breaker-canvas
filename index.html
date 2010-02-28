@@ -3,7 +3,7 @@
 <script>
 $(document).ready (function(){
 	var game = {
-		debug: true
+		debug: false
 	};
 	var x = 150;
 	var y = 150;
@@ -132,11 +132,8 @@ $(document).ready (function(){
 			if(selectedBubbles.length > 1 ) {
 				addScore ((selectedBubbles.length - 1)*selectedBubbles.length);
 				jQuery.each (selectedBubbles, function(i,v){clearBubble(v);})
-				//jQuery.each (selectedBubbles, function(i,v){setBubble(v, -1);})
 				jQuery.each (selectedBubbles, function(i,v){
-				//	clearBubble(v); 
 					dropBubbles(v);
-					//draw();
 				});
 				draw();
 			}
@@ -171,13 +168,6 @@ $(document).ready (function(){
 			}
 		}
 	}
-	// 
-	// function dropColumn(index){
-	// 	jQuery.each( $R(0, height), function (row) {
-	// 		row = height-row; // start at bottom
-	// 		
-	// 	});
-	// }
 	
 	function $P (x, y) {
 		var p = {x:x, y:y};
@@ -202,33 +192,7 @@ $(document).ready (function(){
 		}
 		return isBubblePos(pos) ? pos : null;
 	}
-		// 
-		// 
-		// function findEmptyColumnSpan(col, start, stop) {
-		// 	var posStart = $P(col, start),
-		// 		posEnd = $P(col, stop),
-		// 		posAboveStart = getBubblePosDir(posStart, DIR.NORTH);
-		// 		
-		// 	if (posStart && stop && posAboveStart) {
-		// 		var colorStart = getBubble(posStart),
-		// 			colorStop = getBubble(posStop),
-		// 			colorAboveStart = getBubble(posAboveStart)
-		// 		
-		// 		if (colorStart == -1) {
-		// 			// move south
-		// 			return findEmptyColumnSpan(col, start+1, stop);
-		// 		}
-		// 		else if (colorAboveStart != -1) {
-		// 			// move north
-		// 			return findEmptyColumnSpan(col, start-1, stop);
-		// 		}
-		// 		
-		// 		if (colorStop != -1) 
-		// 	}
-		// 	return null;
-		// }
-	
-	
+
 	function pixelToBubbleCoord(x,y) {
 		return {x: Math.floor(x/bS.width), y: Math.floor(y/bS.height)}
 	}
