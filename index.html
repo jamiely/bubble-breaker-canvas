@@ -4,8 +4,6 @@
 $(document).ready (function(){
 	var x = 150;
 	var y = 150;
-	var dx = 2;
-	var dy = 4;
 	var ctx;
 	
 	var blocks = [],
@@ -34,11 +32,12 @@ $(document).ready (function(){
 			blocks.push(row);
 	  });
 	  draw();
-	  //return setInterval(draw, 300);
 	}
 
+	/**
+	 * init bubbles
+	 */
 	function draw() {
-	  //ctx.clearRect(0,0,300,300);
 	  jQuery.each(blocks, function(y, v) {
 			jQuery.each(blocks[y], function(x, v2) {
 				var color = blocks[y][x];
@@ -81,7 +80,6 @@ $(document).ready (function(){
 	
 	$('#canvas').click(function(evt){
 		var view = adjustViewportCoordinates(evt.pageX, evt.pageY),
-			//block = inCanvas (evt.pageX, evt.pageY) ? getBlockUsingPixel (view.x, view.y) : null;
 			blockPos = pixelToBlockCoord(view.x,view.y),
 			block = blockPos ? getBlock(blockPos) : null;
 		
@@ -89,8 +87,6 @@ $(document).ready (function(){
 			setBlock(blockPos, -1);
 			drawBlock(blockPos, -1);
 		}
-		
-		//alert('view: ' + view + ' block:' + block);
 	});
 	
 	function pixelToBlockCoord(x,y) {
