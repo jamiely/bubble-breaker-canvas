@@ -1,13 +1,26 @@
 body { 
-  max-width: 800px; 
-  margin: auto; 
+  background-color: #EFD279;
+  margin: 0;
+  padding: 0;
+  height: 100%;
 }
-body, input {
+body, input, button {
   font-family: serif;
   font-size: 18pt;
 }
 h1, h2 {
   font-family: sans-serif;
+  color: #024769;
+}
+a, label {
+  color: #2C5700;
+}
+.container {
+  max-width: 800px; 
+  margin: auto; 
+  background-color: white;
+  height: 105%;
+  padding: 20px 40px 0px 40px;
 }
 .canvas-container {
   max-width: 300px;
@@ -16,8 +29,13 @@ h1, h2 {
 label { font-weight: bold;}
 label:after { content: ': ' }
 .settings-container { 
-  float: right;
-  background-color: #EEE;
+  background-color: #AFD775;
   padding: 5px;
+  margin: 30px;
+  margin-top: 40px;
+  padding: 20px;
 }
 input { width: 50px;}
+#btnRefresh {
+  margin-right: 30px;
+}
