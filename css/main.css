@@ -1,0 +1,23 @@
+body { 
+  max-width: 800px; 
+  margin: auto; 
+}
+body, input {
+  font-family: serif;
+  font-size: 18pt;
+}
+h1, h2 {
+  font-family: sans-serif;
+}
+.canvas-container {
+  max-width: 300px;
+  margin: auto;
+}
+label { font-weight: bold;}
+label:after { content: ': ' }
+.settings-container { 
+  float: right;
+  background-color: #EEE;
+  padding: 5px;
+}
+input { width: 50px;}
