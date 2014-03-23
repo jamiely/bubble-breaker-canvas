@@ -1,8 +1,10 @@
-body { 
-  background-color: #EFD279;
+html, body {
+  height: 100%;
   margin: 0;
   padding: 0;
-  height: 100%;
+}
+body { 
+  background-color: #EFD279;
 }
 body, input, button {
   font-family: serif;
@@ -19,8 +21,9 @@ a, label {
   max-width: 800px; 
   margin: auto; 
   background-color: white;
-  height: 120%;
   padding: 20px 40px 0px 40px;
+  margin-bottom: 0;
+  min-height: 120%;
 }
 .canvas-container {
   max-width: 300px;
